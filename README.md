@@ -7,5 +7,6 @@ A laytime is a free time (allotted time) given to the charterer of a vessel for 
 
 In the event where the free time either lapses or not adhere to, the owner of the vessel will be obliged to pay a demurrage to the port authority where the goods are either being loaded or unloading. In return, the owner of the vessel is compensated by the charterer for not fulfilling the time specified in the agreement.
 
---
-More infomation click here: <[http://www.github.com/](https://laytimecalculator.com/)https://laytimecalculator.com/>
+---
+
+More infomation click here: <https://laytimecalculator.com/>
