@@ -1,0 +1,234 @@
+<style>
+    /* laytime-calculator.css */
+
+/* Style the calculator container */
+#laytime-calculator {
+    background-color: rgba(250, 250, 250, 0.4);
+    padding: 10px;  
+    width:1000px;
+    margin:0 auto;
+    border-radius:20px;
+}
+.form-box{
+    display:flex;
+    flex-wrap: wrap;
+    justify-content: start;
+}
+.form-group { 
+    flex-basis: calc(25% - 20px);  
+    margin-bottom: 10px;
+    margin-right: 20px;
+}
+.hide{display:none}
+/* Style labels and inputs */
+#laytime-calculator label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+#laytime-calculator input[type="datetime-local"]{
+    width: 100%;
+    padding: 6px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    height:2.5em;
+}
+
+.input-group {
+    display: flex; 
+    align-items: center;  
+}
+ 
+.form-group label {
+    font-weight: bold;  
+    margin-bottom: 5px;  
+}
+ 
+.form-group input[type="number"] {
+    width: 100%;
+    padding: 6px;
+    margin-bottom: 5px;
+    height:2.5em;
+    flex: 1; 
+    border: 1px solid #ccc;  
+    border-radius: 4px 0 0 4px;  
+    border-right:none;
+}
+ 
+.input-unit {
+    background-color: #999;
+    font-weight: normal;
+    display: inline-block;
+    color: #fff;
+    border-radius: 0 4px 4px 0;
+    line-height: 2em;
+    height:2.5em;
+    margin: 0;
+    padding: 6px 10px;
+    margin-bottom:5px;
+    font-size: var(--wp--custom--button--font-size);
+} 
+
+/* Style the Calculate button */
+#laytime-calculator button {
+    background-color: #0073e6;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 6px 20px;
+    cursor: pointer;
+    font-size: 24px; 
+    width: 100%;
+}
+
+.form-result{
+
+}
+.form-result dt{
+    display:  block;
+    width: 30%;
+    text-align:right;
+    float:left;
+}
+.form-result dd{
+    display:  block;
+    width: 70%;
+    text-align:left;
+}
+.form-result dd span{
+    padding-left:10px;
+
+}/* Style result paragraphs */
+#laytime-calculator p {
+    font-weight: bold; 
+    padding:0;
+    margin:0;
+}
+
+</style>
+<script lang="javascript" src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<div id="laytime-calculator"> 
+    <div class="form-box">
+        <div class="form-group">
+            <label for="loadingStart">Loading Start Time:</label>
+            <input type="datetime-local" id="loadingStart" required>
+        </div>
+        <div class="form-group"> 
+            <label for="loadingEnd">Loading End Time:</label>
+            <input type="datetime-local" id="loadingEnd" required>
+        </div>
+        <div class="form-group"> 
+            <label for="dischargingStart">Discharging Start Time:</label>
+            <input type="datetime-local" id="dischargingStart" required>
+        </div>
+        <div class="form-group"> 
+            <label for="dischargingEnd">Discharging End Time:</label>
+            <input type="datetime-local" id="dischargingEnd" required>
+        </div>
+        <div class="form-group"> 
+            <label for="allowedLoadingTime">Allowed Loading Time:</label>
+            <div class="input-group">
+                <input type="number" id="allowedLoadingTime" required>
+                <span class="input-unit">hours</span>
+            </div>
+        </div>
+        <div class="form-group"> 
+            <label for="allowedDischargingTime">Allowed Discharging Time</label>
+            <div class="input-group">
+                <input type="number" id="allowedDischargingTime" required>
+                <span class="input-unit">hours</span>
+            </div>
+        </div>
+        <div class="form-group"> 
+            <label for="demurrageRate">Demurrage Rate (per day):</label>
+            <div class="input-group">
+            <input type="number" id="demurrageRate" required>
+                <span class="input-unit">USD</span>
+            </div>
+        </div>
+        <div class="form-group"> 
+            <label for="despatchRate">Despatch Rate (per day):</label>
+            <div class="input-group">
+            <input type="number" id="despatchRate" required>
+                <span class="input-unit">USD</span>
+            </div>
+        </div>
+        <div class="form-group"> 
+            <button onclick="calculateLaytime()">Calculate</button>
+        </div>
+    </div>
+    <dl class="form-result hide">
+        <dt>Demurrage for Loading:</dt>
+        <dd><span id="loadingDemurrage">1</span></dd>
+        <dt>Demurrage for Discharging:</dt>
+        <dd><span id="dischargingDemurrage">2</span></dd>
+        <dt>Total Demurrage:</dt>
+        <dd><span id="totalDemurrage">3</span></dd>
+        <dt>Total Despatch:</dt>
+        <dd><span id="totalDespatch">4</span></dd>
+    </dl>
+</div>
+<script>
+jQuery(document).ready(function ($) {
+    // Add additional styling to the Calculate button
+    $('#laytime-calculator button').hover(function () {
+        $(this).css('background-color', '#005ea3');
+    }, function () {
+        $(this).css('background-color', '#0073e6');
+    });
+
+    // Add a smooth scroll to the results when Calculate is clicked
+    $('#laytime-calculator button').click(function () {
+        calculateLaytime()
+        $('html, body').animate({
+            scrollTop: $('#totalDemurrage').offset().top
+        }, 500);
+    });
+});
+
+function calculateLaytime() {
+    const getValue = (id) => parseFloat($(`#${id}`).val());
+    const loadingStart = new Date(getValue("loadingStart"));
+    const loadingEnd = new Date(getValue("loadingEnd"));
+    const dischargingStart = new Date(getValue("dischargingStart"));
+    const dischargingEnd = new Date(getValue("dischargingEnd"));
+    const allowedLoadingTime = getValue("allowedLoadingTime");
+    const allowedDischargingTime = getValue("allowedDischargingTime");
+    const demurrageRate = getValue("demurrageRate");
+    const despatchRate = getValue("despatchRate");
+
+    if (!loadingStart || !loadingEnd || !dischargingStart || !dischargingEnd || isNaN(allowedLoadingTime) || isNaN(allowedDischargingTime) || isNaN(demurrageRate) || isNaN(despatchRate)) {
+        alert("Please complete the input box！");
+        return;
+    }
+
+    // Calculate actual loading time (hours)
+    const loadingActualTime = (loadingEnd - loadingStart) / (1000 * 60 * 60);
+
+    // Calculate actual discharging time (hours)
+    const dischargingActualTime = (dischargingEnd - dischargingStart) / (1000 * 60 * 60);
+
+    // Calculate loading demurrage
+    const loadingDemurrage = Math.max(0, loadingActualTime - allowedLoadingTime) * (demurrageRate / 24);
+
+    // Calculate discharging demurrage
+    const dischargingDemurrage = Math.max(0, allowedDischargingTime - dischargingActualTime) * (demurrageRate / 24);
+
+    // Calculate total demurrage
+    const totalDemurrage = loadingDemurrage + dischargingDemurrage;
+
+    // Calculate total despatch
+    const totalDespatch = Math.max(0, loadingActualTime - allowedLoadingTime) * (despatchRate / 24) +
+        Math.max(0, dischargingActualTime - allowedDischargingTime) * (despatchRate / 24);
+
+    // Display results
+    $("#loadingDemurrage").text(loadingDemurrage.toFixed(2));
+    $("#dischargingDemurrage").text(dischargingDemurrage.toFixed(2));
+    $("#totalDemurrage").text(totalDemurrage.toFixed(2));
+    $("#totalDespatch").text(totalDespatch.toFixed(2));
+    $('.form-result').slideDown();
+}
+
+</script>
